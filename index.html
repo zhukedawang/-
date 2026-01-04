@@ -3,17 +3,29 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>熏听助手 - 碎片化时间学习专家</title>
+    
+    <!-- 移动端全屏体验优化 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="熏听助手">
+    <meta name="theme-color" content="#3b82f6">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
       body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: #f8fafc;
+        -webkit-tap-highlight-color: transparent;
       }
       .font-serif-sc {
         font-family: 'Noto+Serif+SC', serif;
+      }
+      /* 适配安全区域（如 iPhone 的刘海和底栏） */
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
       }
     </style>
 <script type="importmap">
@@ -31,6 +43,7 @@
 </head>
 <body>
     <div id="root"></div>
+    <!-- Vite 会自动处理这里的导入，不需要额外的 importmap -->
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>
