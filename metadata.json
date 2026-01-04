@@ -1,0 +1,8 @@
+{
+  "name": "熏听助手 (XunTing AI)",
+  "description": "智能碎片化时间熏听学习工具，专为初高中生设计，支持定时播放、文言文译文对照、语音同步及书籍扫码识别。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
