@@ -20,7 +20,9 @@ const Player: React.FC<PlayerProps> = ({ lesson, onBack }) => {
 
   // Initialize Audio Context
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    audioContextRef.current = new AudioCtx({ sampleRate: 24000 });
+    
     return () => {
       audioContextRef.current?.close();
     };
@@ -40,9 +42,13 @@ const Player: React.FC<PlayerProps> = ({ lesson, onBack }) => {
   const playSentence = useCallback(async (index: number) => {
     if (!audioContextRef.current || !isPlaying) return;
     
+    // Resume context if it was suspended (common on mobile)
+    if (audioContextRef.current.state === 'suspended') {
+      await audioContextRef.current.resume();
+    }
+
     setLoadingAudio(true);
     const sentence = lesson.sentences[index];
-    // We combine original and translation for "Xun Ting" effect
     const fullText = `${sentence.original}. ${sentence.translation}`;
     
     const audioBytes = await generateSpeech(fullText);
@@ -51,7 +57,11 @@ const Player: React.FC<PlayerProps> = ({ lesson, onBack }) => {
     if (!audioBytes) return;
 
     if (currentSourceRef.current) {
-      currentSourceRef.current.stop();
+      try {
+        currentSourceRef.current.stop();
+      } catch (e) {
+        // Source might already be stopped
+      }
     }
 
     const buffer = await decodeAudioData(audioBytes, audioContextRef.current);
@@ -82,14 +92,24 @@ const Player: React.FC<PlayerProps> = ({ lesson, onBack }) => {
     } else {
       currentSourceRef.current?.stop();
     }
-    return () => currentSourceRef.current?.stop();
+    return () => {
+      try {
+        currentSourceRef.current?.stop();
+      } catch (e) {}
+    };
   }, [currentIndex, isPlaying, playSentence]);
 
   useEffect(() => {
     activeSentenceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [currentIndex]);
 
-  const togglePlay = () => setIsPlaying(!isPlaying);
+  const togglePlay = async () => {
+    if (!isPlaying && audioContextRef.current?.state === 'suspended') {
+      await audioContextRef.current.resume();
+    }
+    setIsPlaying(!isPlaying);
+  };
+  
   const toggleLoop = () => setIsLooping(!isLooping);
 
   return (
@@ -101,7 +121,7 @@ const Player: React.FC<PlayerProps> = ({ lesson, onBack }) => {
         </button>
         <div className="text-center flex-1">
           <h1 className="font-serif-sc text-lg font-bold truncate">{lesson.title}</h1>
-          <p className="text-xs text-white/50">{lesson.author || '自动获取'}</p>
+          <p className="text-xs text-white/50">{lesson.author || '自动获取内容'}</p>
         </div>
         <button onClick={toggleLoop} className={`p-2 rounded-full ${isLooping ? 'bg-blue-600 text-white' : 'text-white/40'}`}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
