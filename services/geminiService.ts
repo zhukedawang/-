@@ -2,14 +2,14 @@
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { Lesson } from "../types";
 
-// Removed global API_KEY constant to comply with SDK guidelines for dynamic initialization.
-
 /**
  * Generates speech audio using the Gemini TTS model.
+ * Enhanced with better error handling and specific voice check.
  */
 export async function generateSpeech(text: string): Promise<Uint8Array | null> {
+  if (!text || text.trim().length === 0) return null;
+  
   try {
-    // Initialize GoogleGenAI right before the API call to ensure latest key is used.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
@@ -18,16 +18,28 @@ export async function generateSpeech(text: string): Promise<Uint8Array | null> {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           voiceConfig: {
+            // Using 'Kore' as it's a solid, clear voice for educational content
             prebuiltVoiceConfig: { voiceName: 'Kore' },
           },
         },
       },
     });
 
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) return null;
+    const candidate = response.candidates?.[0];
+    if (!candidate || !candidate.content) {
+      console.warn("Gemini TTS: No content in candidate");
+      return null;
+    }
 
-    // Decode base64 to Uint8Array (Raw PCM)
+    const audioPart = candidate.content.parts.find(p => p.inlineData);
+    const base64Audio = audioPart?.inlineData?.data;
+    
+    if (!base64Audio) {
+      console.warn("Gemini TTS: No inlineData found in response parts");
+      return null;
+    }
+
+    // Manual Base64 decoding as per SDK guidelines
     const binaryString = atob(base64Audio);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
@@ -36,18 +48,16 @@ export async function generateSpeech(text: string): Promise<Uint8Array | null> {
     }
     return bytes;
   } catch (error) {
-    console.error("Speech generation failed:", error);
+    console.error("Speech generation encountered an error:", error);
     return null;
   }
 }
 
 /**
  * Recognizes a book from an image and suggests a lesson.
- * Fixed the return type to include 'suggestedLesson' which was missing from the Partial<Lesson> interface.
  */
 export async function recognizeBook(base64Image: string): Promise<{ title?: string; author?: string; suggestedLesson?: string } | null> {
   try {
-    // Initialize GoogleGenAI with the environment API key.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -70,8 +80,7 @@ export async function recognizeBook(base64Image: string): Promise<{ title?: stri
       }
     });
 
-    const text = response.text;
-    return JSON.parse(text || "{}");
+    return JSON.parse(response.text || "{}");
   } catch (error) {
     console.error("Book recognition failed:", error);
     return null;

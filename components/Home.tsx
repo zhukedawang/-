@@ -14,88 +14,89 @@ const Home: React.FC<HomeProps> = ({ state, setView, toggleAutoMode }) => {
 
   return (
     <div className="flex-1 p-6 space-y-8 overflow-y-auto">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between border-b-2 border-[#D4AF37]/30 pb-4">
         <div>
-          <h1 className="text-2xl font-bold">你好，同学</h1>
-          <p className="text-slate-500 text-sm">今天是熏听学习的好时机</p>
+          <h1 className="text-3xl font-black text-[#8B0000] tracking-tighter">熏听。</h1>
+          <p className="text-[#D4AF37] font-western italic text-xs tracking-widest uppercase">The Classical Listener</p>
         </div>
-        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+        <div className="w-12 h-12 rounded-full border-2 border-[#D4AF37] p-1">
+          <div className="w-full h-full rounded-full bg-[#8B0000] flex items-center justify-center text-[#D4AF37]">
+             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08s5.97 1.09 6 3.08c-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+          </div>
         </div>
       </header>
 
-      {/* Auto Mode Control */}
-      <section className={`p-6 rounded-3xl transition-all border-2 ${state.isAutoModeArmed ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-slate-900 border-slate-100 shadow-sm'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">定时自动熏听</h2>
+      {/* Auto Mode Control - Red & Gold Theme */}
+      <section className={`p-6 rounded-none border-gold-double transition-all shadow-2xl relative overflow-hidden ${state.isAutoModeArmed ? 'bg-[#8B0000] text-[#D4AF37]' : 'bg-white text-slate-900'}`}>
+        {/* Decorative corner */}
+        <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-[#D4AF37]/20"></div>
+        
+        <div className="flex items-center justify-between mb-4 relative z-10">
+          <h2 className={`text-xl font-bold ${state.isAutoModeArmed ? 'gold-text-glow' : 'text-[#8B0000]'}`}>定时熏听系统</h2>
           <button 
             onClick={toggleAutoMode}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${state.isAutoModeArmed ? 'bg-white' : 'bg-slate-200'}`}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors border-2 ${state.isAutoModeArmed ? 'bg-[#D4AF37] border-white' : 'bg-slate-200 border-slate-300'}`}
           >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-blue-600 transition-transform ${state.isAutoModeArmed ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#8B0000] transition-transform ${state.isAutoModeArmed ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
-        <p className={`text-sm mb-6 ${state.isAutoModeArmed ? 'text-blue-100' : 'text-slate-500'}`}>
-          开启后，到点将自动全屏播放当日课文，充分利用碎片时间。
+        
+        <p className={`text-sm mb-6 leading-relaxed ${state.isAutoModeArmed ? 'text-[#FDF5E6]/80' : 'text-slate-500'}`}>
+          系统已准备就绪。设定时刻，智慧将如约而至。
         </p>
-        <div className="space-y-2">
+
+        <div className="space-y-3">
           {activeSchedules.map(s => (
-            <div key={s.id} className={`flex items-center gap-3 text-sm font-medium ${state.isAutoModeArmed ? 'text-white' : 'text-slate-700'}`}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span>{s.name}: {s.startTime} - {s.endTime}</span>
+            <div key={s.id} className={`flex items-center gap-3 text-xs font-bold tracking-widest uppercase ${state.isAutoModeArmed ? 'text-white' : 'text-[#8B0000]'}`}>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></div>
+              <span>{s.name}: {s.startTime}</span>
             </div>
           ))}
-          {activeSchedules.length === 0 && (
-            <p className="text-xs opacity-60">暂无已启用的定时任务</p>
-          )}
         </div>
       </section>
 
-      {/* Continue Learning */}
+      {/* Recent Play - Parchment Style */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">最近播放</h2>
-          <button onClick={() => setView('library')} className="text-blue-600 text-sm font-medium">查看全部</button>
-        </div>
+        <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase">最近阅听</h2>
         {currentLesson ? (
           <div 
             onClick={() => setView('player')}
-            className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 active:scale-95 transition-transform cursor-pointer"
+            className="bg-[#FDF5E6] p-5 border-l-4 border-[#8B0000] shadow-md flex items-center gap-4 active:translate-x-2 transition-all cursor-pointer group"
           >
-            <div className="w-16 h-16 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-serif-sc font-bold text-xl">
+            <div className="w-14 h-14 bg-[#8B0000] text-[#D4AF37] flex items-center justify-center font-bold text-2xl shadow-inner border border-[#D4AF37]/30">
               {currentLesson.title[0]}
             </div>
             <div className="flex-1">
-              <h3 className="font-bold">{currentLesson.title}</h3>
-              <p className="text-xs text-slate-500 mt-1">{currentLesson.category === 'middle' ? '初中必背' : '高中必背'}</p>
+              <h3 className="font-bold text-[#8B0000]">{currentLesson.title}</h3>
+              <p className="text-[10px] text-[#D4AF37] font-bold uppercase mt-1 tracking-tighter italic">Classical Volume</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <div className="text-[#8B0000] group-hover:scale-125 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             </div>
           </div>
         ) : (
-          <div className="p-10 border-2 border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
-            暂无历史记录
+          <div className="p-10 border-2 border-dashed border-[#D4AF37]/30 rounded-lg text-center text-[#D4AF37]">
+            书架空空，虚位以待
           </div>
         )}
       </section>
 
-      {/* Learning Paths */}
+      {/* Progress */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold">学习进度</h2>
+        <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase">研习进度</h2>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-            <div className="text-emerald-600 font-bold text-lg">初中必背</div>
-            <div className="text-slate-500 text-xs mt-1">已完成 65%</div>
-            <div className="mt-3 h-1.5 w-full bg-emerald-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 w-[65%]"></div>
+          <div className="bg-[#8B0000] p-4 text-[#D4AF37] border border-[#D4AF37]/30">
+            <div className="font-bold text-lg">文言必背</div>
+            <div className="text-white/60 text-[10px] mt-1 uppercase">Achievement 65%</div>
+            <div className="mt-3 h-0.5 w-full bg-white/10">
+              <div className="h-full bg-[#D4AF37] w-[65%]"></div>
             </div>
           </div>
-          <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
-            <div className="text-indigo-600 font-bold text-lg">英语短篇</div>
-            <div className="text-slate-500 text-xs mt-1">已完成 20%</div>
-            <div className="mt-3 h-1.5 w-full bg-indigo-100 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 w-[20%]"></div>
+          <div className="bg-white p-4 border-gold-double">
+            <div className="text-[#8B0000] font-bold text-lg">英语短篇</div>
+            <div className="text-slate-400 text-[10px] mt-1 uppercase">Achievement 20%</div>
+            <div className="mt-3 h-0.5 w-full bg-slate-100">
+              <div className="h-full bg-[#8B0000] w-[20%]"></div>
             </div>
           </div>
         </div>
