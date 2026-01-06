@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ViewMode, Lesson, AppState, Schedule } from './types';
 import { MOCK_LESSONS } from './constants';
 import Player from './components/Player';
@@ -14,8 +14,20 @@ const App: React.FC = () => {
   const [state, setState] = useState<AppState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...parsed, currentView: 'home', isAutoModeArmed: false };
+      try {
+        const parsed = JSON.parse(saved) as Partial<AppState>;
+        return {
+          currentView: 'home',
+          currentLesson: parsed.currentLesson || MOCK_LESSONS[0],
+          schedules: parsed.schedules || [
+            { id: '1', name: '早餐熏听', startTime: '07:00', endTime: '07:30', enabled: true, repeatDays: [1, 2, 3, 4, 5] },
+            { id: '2', name: '午餐熏听', startTime: '12:00', endTime: '12:45', enabled: true, repeatDays: [1, 2, 3, 4, 5] }
+          ],
+          isAutoModeArmed: false
+        } as AppState;
+      } catch (e) {
+        console.error("Failed to parse saved state", e);
+      }
     }
     return {
       currentView: 'home',
@@ -38,12 +50,11 @@ const App: React.FC = () => {
   const setCurrentLesson = (lesson: Lesson) => setState(prev => ({ ...prev, currentLesson: lesson, currentView: 'player' }));
   const setSchedules = (schedules: Schedule[]) => setState(prev => ({ ...prev, schedules }));
   
-  // Wake Lock for mobile stability
   const requestWakeLock = async () => {
     if ('wakeLock' in navigator) {
       try {
         wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-      } catch (err) {
+      } catch (err: any) {
         console.error(`${err.name}, ${err.message}`);
       }
     }
@@ -65,7 +76,6 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, isAutoModeArmed: !prev.isAutoModeArmed }));
   };
 
-  // Auto-start Logic
   useEffect(() => {
     if (!state.isAutoModeArmed) return;
 
@@ -81,7 +91,6 @@ const App: React.FC = () => {
       );
 
       if (activeSchedule && state.currentView !== 'player') {
-        console.log("Triggering auto-play for:", activeSchedule.name);
         setView('player');
       }
     };
@@ -94,7 +103,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 max-w-md mx-auto shadow-xl relative">
-      {/* Content Area */}
       <main className="flex-1 relative overflow-hidden flex flex-col">
         {state.currentView === 'home' && (
           <Home 
@@ -135,7 +143,6 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Navigation Bar */}
       {state.currentView !== 'player' && state.currentView !== 'scanner' && (
         <nav className="h-20 bg-white/80 backdrop-blur-lg border-t flex items-center justify-around px-2 sticky bottom-0 z-50 pb-safe">
           <button 
@@ -153,23 +160,24 @@ const App: React.FC = () => {
             <span className="text-[10px] font-bold">文库</span>
           </button>
           <button 
-            onClick={() => setView('scanner')}
-            className="flex flex-col items-center justify-center -mt-10 bg-blue-600 w-16 h-16 rounded-full text-white shadow-xl shadow-blue-200 active:scale-90 transition-transform border-4 border-slate-50"
-          >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </button>
-          <button 
             onClick={() => setView('scheduler')}
             className={`flex flex-col items-center gap-1 transition-colors ${state.currentView === 'scheduler' ? 'text-blue-600' : 'text-slate-400'}`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[10px] font-bold">定时</span>
           </button>
-          <div className="w-10"></div>
+          <button 
+            onClick={() => setView('scanner')}
+            className={`flex flex-col items-center gap-1 transition-colors ${state.currentView === 'scanner' ? 'text-blue-600' : 'text-slate-400'}`}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <span className="text-[10px] font-bold">扫书</span>
+          </button>
         </nav>
       )}
     </div>
   );
 };
 
+// Fix for index.tsx error: export default App
 export default App;
